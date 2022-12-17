@@ -89,7 +89,7 @@ tone_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_trian
 entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "isochronic": gen_isochronic}
 
 
-if __name__ == "__main__":
+def main():
 	sample_rate = 44100
 	save_np_dtype = np.int16
 	
@@ -115,3 +115,7 @@ if __name__ == "__main__":
 		arr = entrainment_generator(sound_freq, beat_freq, sample_rate, duration, tone_generator)
 		
 	save_wav(save_path, arr, sample_rate, save_np_dtype)
+
+
+if __name__ == "__main__":
+	main()
