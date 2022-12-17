@@ -16,7 +16,16 @@ def gen_square(x):
 
 
 def gen_triangle(x):
-	return np.abs((x - np.floor(x)) - 0.5) * 4 - 1
+	return np.abs(x - np.floor(x) - 0.5) * 4 - 1
+
+
+def gen_smooth_square(x):
+	y = gen_triangle(x) * 7
+	y[y > 1] = 1
+	y[y < -1] = -1
+	
+	return y
+	
 
 
 def smooth_start_end(arr, ramp_length):
@@ -85,7 +94,7 @@ def save_wav(path, arr, sample_rate, save_np_type):
 	write(path, sample_rate, arr)
 	
 
-tone_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle}
+tone_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle, "smooth_square": gen_smooth_square}
 entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "isochronic": gen_isochronic}
 
 
