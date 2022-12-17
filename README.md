@@ -1,5 +1,5 @@
 # audio-brainwave-entrainment-gen-python
-A python script to generate wav files for audio brainwave entrainment
+A python script to generate binaural, monoural, isochronic beats wav files for audio brainwave entrainment.
 
 The script takes the following parameters:<br/><br/>
 SAVE_PATH DURATION_SECONDS SOUND_FREQ BEAT_FREQ WAVEFORM ENTRAINMENT_TYPE [ISOCHRONIC_AMPLITUDE_TYPE]<br/><br/>
