@@ -11,5 +11,5 @@ NOISE_GENERATOR can be one of: white, pink, brown<br/>
 VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smooth_square<br/>
 ENTRAINMENT_TYPE can be one of: binaural, monoural, isochronic<br/>
 when ENTRAINMENT_TYPE == isochronic then VOLUME_GENERATOR is required<br/><br/>
-Example:<br/><br/>
+Example:<br/>
 python3 ./sound_and_beat_gen.py ./test.wav 300 white
