@@ -25,6 +25,10 @@ def gen_smooth_square(x):
 	y[y < -1] = -1
 	
 	return y
+
+
+def gen_noise(x):
+	return np.random.rand(x.shape[0]) * 2 - 1
 	
 
 
@@ -94,7 +98,7 @@ def save_wav(path, arr, sample_rate, save_np_type):
 	write(path, sample_rate, arr)
 	
 
-tone_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle, "smooth_square": gen_smooth_square}
+tone_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle, "smooth_square": gen_smooth_square, "noise": gen_noise}
 entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "isochronic": gen_isochronic}
 
 
