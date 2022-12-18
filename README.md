@@ -1,8 +1,15 @@
 # audio-brainwave-entrainment-gen-python
-A python script to generate binaural, monoural, isochronic beats wav files for audio brainwave entrainment.
+A python script to generate wav files of noise, tones, and binaural, monoural, isochronic beats.
 
-The script takes the following parameters:<br/><br/>
-SAVE_PATH DURATION_SECONDS SOUND_FREQ BEAT_FREQ WAVEFORM ENTRAINMENT_TYPE [ISOCHRONIC_AMPLITUDE_TYPE]<br/><br/>
-WAVEFORM and ISOCHRONIC_AMPLITUDE_TYPE has to be one of: sine, square, triangle, smooth_square, noise<br/>
-ENTRAINMENT_TYPE has to be one of: binaural, monoural, isochronic<br/>
-ISOCHRONIC_AMPLITUDE_TYPE only have to be provided when ENTRAINMENT_TYPE == isochronic
+Usage of the script:<br/>
+The script takes command line arguments.<br/><br/>
+Generate noise or isochronic noise<br/>
+SAVE_PATH DURATION_SECONDS NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]<br/><br/>
+Generate tone only or tone with entrainment<br/>
+SAVE_PATH DURATION_SECONDS TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [ISOCHRONIC_VOLUME_GENERATOR]]<br/><br/>
+NOISE_GENERATOR can be one of: white, pink, brown<br/>
+VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smooth_square<br/>
+ENTRAINMENT_TYPE can be one of: binaural, monoural, isochronic<br/>
+when ENTRAINMENT_TYPE == isochronic then VOLUME_GENERATOR is required<br/><br/>
+Example:<br/>
+python3 ./sound_and_beat_gen.py ./test.wav 300 white
