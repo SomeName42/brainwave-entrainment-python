@@ -69,8 +69,11 @@ def gen_brown(x):
 	return fft_noise(scales)
 
 
-def smooth_start_end(arr, ramp_length):
+def fade_in_out(arr, ramp_length):
 	ramp = np.linspace(0, 1, ramp_length)
+	
+	if(len(arr.shape) == 2):
+		ramp = ramp[:,None]
 	
 	arr[:ramp_length] *= ramp
 	
@@ -88,9 +91,6 @@ def gen_binaural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
 	
 	ramp_length = int(sample_rate * 0.5)
 	
-	smooth_start_end(l_y, ramp_length)
-	smooth_start_end(r_y, ramp_length)
-	
 	y = np.concatenate((l_y[:, None], r_y[:, None]), 1)
 	
 	return y
@@ -103,10 +103,6 @@ def gen_monoural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
 	
 	y = (tone_generator(x_1) + tone_generator(x_2)) / 2
 	
-	ramp_length = int(sample_rate * 0.5)
-	
-	smooth_start_end(y, ramp_length)
-	
 	return y
 
 
@@ -114,10 +110,6 @@ def gen_none(sound_freq, beat_freq, sample_rate, duration, tone_generator):
 	x = gen_x(duration, sample_rate, sound_freq)
 	
 	y = tone_generator(x)
-	
-	ramp_length = int(sample_rate * 0.5)
-	
-	smooth_start_end(y, ramp_length)
 	
 	return y
 
@@ -130,10 +122,6 @@ def gen_isochronic(sound_freq, beat_freq, sample_rate, duration, tone_generator,
 	y_2 = volume_generator(x_2) / 2 + 0.5
 	
 	y = y_1 * y_2
-	
-	ramp_length = int(sample_rate * 0.5)
-	
-	smooth_start_end(y, ramp_length)
 	
 	return y
 
@@ -160,31 +148,32 @@ def main():
 	try:
 		save_path = sys.argv[1]
 		duration = float(sys.argv[2])
-		sound_type = sys.argv[3]
+		do_fade_in_out = "true" == sys.argv[3]
+		sound_type = sys.argv[4]
 		
 		
 		if(sound_type in noise_generators):
 			sound_freq = 1
 			beat_freq = None
 			
-			if(len(sys.argv) == 4):
+			if(len(sys.argv) == 5):
 				entrainment_type = "none"
 			else:
 				entrainment_type = "isochronic"
-				beat_freq = float(sys.argv[4])
-				volume_generator = sound_generators[sys.argv[5]]
+				beat_freq = float(sys.argv[5])
+				volume_generator = sound_generators[sys.argv[6]]
 		else:
-			sound_freq = float(sys.argv[4])
+			sound_freq = float(sys.argv[5])
 			
-			if(len(sys.argv) == 5):
+			if(len(sys.argv) == 6):
 				entrainment_type = "none"
 				beat_freq = None
 			else:
-				entrainment_type = sys.argv[5]
-				beat_freq = float(sys.argv[6])
+				entrainment_type = sys.argv[6]
+				beat_freq = float(sys.argv[7])
 				
 				if(entrainment_type == "isochronic"):
-					volume_generator = sound_generators[sys.argv[7]]
+					volume_generator = sound_generators[sys.argv[8]]
 			
 		
 		sound_generator = sound_generators[sound_type]
@@ -196,10 +185,13 @@ def main():
 		print("Usages:")
 		print("")
 		print("Generate noise or isochronic noise")
-		print("SAVE_PATH DURATION_SECONDS NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]")
+		print("SAVE_PATH DURATION_SECONDS FADE_IN_OUT NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]")
 		print("")
 		print("Generate tone only or tone with entrainment")
-		print("SAVE_PATH DURATION_SECONDS TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [ISOCHRONIC_VOLUME_GENERATOR]]")
+		print("SAVE_PATH DURATION_SECONDS FADE_IN_OUT TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [ISOCHRONIC_VOLUME_GENERATOR]]")
+		print("")
+		print("when FADE_IN_OUT == true the audio will fade in at the start and out at the end")
+		print("for seamless loop set it to anything else")
 		print("")
 		print("NOISE_GENERATOR can be one of: white, pink, brown")
 		print("VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smooth_square")
@@ -208,7 +200,7 @@ def main():
 		print("")
 		print("Example:")
 		print("")
-		print("\"python3 ./audio_entrainment_gen.py ./test.wav 300 white\"")
+		print("\"python3 ./sound_and_beat_gen.py ./test.wav 300 true white\"")
 		
 		exit()
 		
@@ -217,9 +209,14 @@ def main():
 		arr = entrainment_generator(sound_freq, beat_freq, sample_rate, duration, sound_generator, volume_generator)
 	else:
 		arr = entrainment_generator(sound_freq, beat_freq, sample_rate, duration, sound_generator)
-		
+	
+	ramp_length = int(sample_rate * 0.5)
+	
+	if(do_fade_in_out):
+		fade_in_out(arr, ramp_length)
+	
 	save_wav(save_path, arr, sample_rate, save_np_dtype)
 
 
-if __name__ == "__main__":
+if(__name__ == "__main__"):
 	main()
