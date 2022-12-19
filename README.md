@@ -1,4 +1,4 @@
-# audio-brainwave-entrainment-gen-python
+# sound-and-beats-gen-python
 Python scripts for generating wav files of noise, tones, binaural, monoural, and isochronic beats, and for playing them back seamlessly in an endless loop.
 
 Usage of sound_and_beat_gen.py:<br/>
