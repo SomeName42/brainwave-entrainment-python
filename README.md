@@ -14,4 +14,7 @@ VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smoot
 ENTRAINMENT_TYPE can be one of: binaural, monoural, isochronic<br/>
 when ENTRAINMENT_TYPE == isochronic then VOLUME_GENERATOR is required<br/><br/>
 Example:<br/>
-python3 ./sound_and_beat_gen.py ./test.wav 300 white
+python3 ./sound_and_beat_gen.py ./test.wav 300 white<br/><br/>
+Usage of seamless_loop.py<br/><br/>
+FILE_PATH [VOLUME]<br/>
+VOLUME is a floating point value 1 is normal
