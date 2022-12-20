@@ -50,7 +50,7 @@ def main():
 	
 	
 	print("")
-	print("Use CTRL + C to stop playback")
+	print("Press CTRL + C to stop playback")
 	
 	while True:
 		stream.write(file_buffer)

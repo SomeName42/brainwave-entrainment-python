@@ -50,7 +50,7 @@ def gen_white(x):
 
 
 def gen_pink(x):
-	dur = x[-1]
+	dur = x[1] * x.shape[0]
 	n = (x.shape[0] - 2) // 2
 	
 	scales = 1 / np.sqrt(np.fft.fftfreq(x.shape[0], x[1])[1:1 + n])
@@ -60,7 +60,7 @@ def gen_pink(x):
 
 
 def gen_brown(x):
-	dur = x[-1]
+	dur = x[1] * x.shape[0]
 	n = (x.shape[0] - 2) // 2
 	
 	scales = 1 / np.fft.fftfreq(x.shape[0], x[1])[1:1 + n]
