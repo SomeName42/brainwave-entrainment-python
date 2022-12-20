@@ -54,7 +54,7 @@ def gen_pink(x):
 	n = (x.shape[0] - 2) // 2
 	
 	scales = 1 / np.sqrt(np.fft.fftfreq(x.shape[0], x[1])[1:1 + n])
-	scales[:int(16 * x[-1])] = 0
+	scales[:int(16 * dur)] = 0
 	
 	return fft_noise(scales)
 
@@ -64,7 +64,7 @@ def gen_brown(x):
 	n = (x.shape[0] - 2) // 2
 	
 	scales = 1 / np.fft.fftfreq(x.shape[0], x[1])[1:1 + n]
-	scales[:int(16 * x[-1])] = 0
+	scales[:int(16 * dur)] = 0
 	
 	return fft_noise(scales)
 
