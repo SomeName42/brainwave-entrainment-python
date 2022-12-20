@@ -1,4 +1,4 @@
-from scipy.io.wavfile import write
+import wave
 import numpy as np
 import sys
 import traceback
@@ -126,14 +126,20 @@ def gen_isochronic(sound_freq, beat_freq, sample_rate, duration, tone_generator,
 	return y
 
 
-def save_wav(path, arr, sample_rate, save_np_type):
-	if(np.issubdtype(save_np_type, np.integer)):
-		arr = arr * np.iinfo(save_np_type).max
+def save_wav(path, arr, sample_rate):
+	arr *= np.iinfo(np.int16).max
+	arr = arr.astype(np.int16)
 	
-	arr = arr.astype(save_np_type)
+	f = wave.open(path, "wb")
 	
-	write(path, sample_rate, arr)
+	f.setnchannels(len(arr.shape))
+	f.setsampwidth(2)
+	f.setframerate(sample_rate)
 	
+	f.writeframes(arr)
+	
+	f.close()
+
 
 sound_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle, "smooth_square": gen_smooth_square, "white": gen_white, "pink": gen_pink, "brown": gen_brown}
 entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "isochronic": gen_isochronic, "none": gen_none}
@@ -141,7 +147,6 @@ entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "i
 
 def main():
 	sample_rate = 44100
-	save_np_dtype = np.int16
 	
 	noise_generators = set({"white", "pink", "brown"})
 	
@@ -215,7 +220,7 @@ def main():
 	if(do_fade_in_out):
 		fade_in_out(arr, ramp_length)
 	
-	save_wav(save_path, arr, sample_rate, save_np_dtype)
+	save_wav(save_path, arr, sample_rate)
 
 
 if(__name__ == "__main__"):
