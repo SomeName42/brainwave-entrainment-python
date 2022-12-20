@@ -5,7 +5,7 @@ import traceback
 
 
 def gen_x(duration, sample_rate, freq):
-	return np.linspace(0, duration * freq, int(duration * sample_rate))
+	return np.linspace(0, duration * freq - freq / sample_rate, int(duration * sample_rate))
 
 
 def gen_sine(x):

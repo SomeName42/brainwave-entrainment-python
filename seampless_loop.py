@@ -29,12 +29,14 @@ def main():
 		if(len(data) == 0):
 			break
 		
-		if(volume != 1):
-			data = np.fromstring(data, np.int16)
-			data = (data * volume).astype(np.int16).tostring()
-
+		data = np.fromstring(data, np.int16)
 		
 		file_buffer.append(data)
+		
+		
+	file_buffer = np.concatenate(file_buffer)
+	file_buffer = file_buffer * volume
+	file_buffer = file_buffer.astype(np.int16).tostring()
 	
 	
 	p = pyaudio.PyAudio()
@@ -44,12 +46,14 @@ def main():
 					rate=wf.getframerate(),
 					output=True)
 	
+	wf.close()
+	
+	
 	print("")
-	print("Use CTRL + C to pause playback")
+	print("Use CTRL + C to stop playback")
 	
 	while True:
-		for data in file_buffer:
-			stream.write(data)
+		stream.write(file_buffer)
 			
 	stream.close()
 	p.terminate()	
