@@ -1,7 +1,7 @@
 # sound-and-beats-gen-python
 Python scripts for generating wav files of noise, tones, binaural, monoural, and isochronic beats, and for playing them back seamlessly in an endless loop.
 
-Usage of sound_and_beat_gen.py:<br/>
+Usage of generate.py:<br/>
 The script takes command line arguments.<br/><br/>
 Generate noise or isochronic noise<br/>
 SAVE_PATH DURATION_SECONDS FADE_IN_OUT NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]<br/><br/>
@@ -14,7 +14,7 @@ VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smoot
 ENTRAINMENT_TYPE can be one of: binaural, monoural, isochronic<br/>
 when ENTRAINMENT_TYPE == isochronic then VOLUME_GENERATOR is required<br/><br/>
 Example:<br/>
-python3 ./sound_and_beat_gen.py ./test.wav 300 white<br/><br/>
-Usage of seamless_loop.py<br/><br/>
+python3 ./generate.py ./test.wav 300 white<br/><br/>
+Usage of loop.py<br/><br/>
 FILE_PATH [VOLUME]<br/>
 VOLUME is a floating point value 1 is normal
