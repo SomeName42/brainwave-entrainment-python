@@ -16,7 +16,7 @@ def load_wave(file_path):
 		if(len(data) == 0):
 			break
 		
-		data = np.fromstring(data, np.int16)
+		data = np.frombuffer(data, np.int16)
 		
 		file_buffer.append(data)
 		
@@ -33,6 +33,8 @@ def load_wave(file_path):
 
 
 def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
+	file_buffer = file_buffer.astype(np.int16).tobytes()
+	
 	p = pyaudio.PyAudio()
 
 	stream = p.open(format=p.get_format_from_width(sample_width),
@@ -69,7 +71,6 @@ def main():
 	
 	
 	file_buffer = file_buffer * volume
-	file_buffer = file_buffer.astype(np.int16).tostring()
 	
 	loop_wave(file_buffer, sample_width, num_channels, sample_rate)
 		
