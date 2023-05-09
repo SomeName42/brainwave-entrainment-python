@@ -69,19 +69,7 @@ def gen_brown(x):
 	return fft_noise(scales)
 
 
-def fade_in_out(arr, ramp_length):
-	ramp = np.linspace(0, 1, ramp_length)
-	
-	if(len(arr.shape) == 2):
-		ramp = ramp[:,None]
-	
-	arr[:ramp_length] *= ramp
-	
-	ramp = ramp[::-1]
-	arr[-ramp_length:] *= ramp
-
-
-def gen_binaural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
+def gen_binaural(sound_freq, beat_freq, sample_rate, duration, tone_generator, volume_generator):
 	diff = beat_freq / 2
 	l_x = gen_x(duration, sample_rate, sound_freq - diff)
 	r_x = gen_x(duration, sample_rate, sound_freq + diff)
@@ -96,7 +84,7 @@ def gen_binaural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
 	return y
 
 
-def gen_monoural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
+def gen_monoural(sound_freq, beat_freq, sample_rate, duration, tone_generator, volume_generator):
 	diff = beat_freq / 2
 	x_1 = gen_x(duration, sample_rate, sound_freq - diff)
 	x_2 = gen_x(duration, sample_rate, sound_freq + diff)
@@ -106,7 +94,7 @@ def gen_monoural(sound_freq, beat_freq, sample_rate, duration, tone_generator):
 	return y
 
 
-def gen_none(sound_freq, beat_freq, sample_rate, duration, tone_generator):
+def gen_none(sound_freq, beat_freq, sample_rate, duration, tone_generator, volume_generator):
 	x = gen_x(duration, sample_rate, sound_freq)
 	
 	y = tone_generator(x)
@@ -141,84 +129,64 @@ def save_wav(path, arr, sample_rate):
 	f.close()
 
 
+noise_generators = set({"white", "pink", "brown"})
 sound_generators = {"sine": gen_sine, "square": gen_square, "triangle": gen_triangle, "smooth_square": gen_smooth_square, "white": gen_white, "pink": gen_pink, "brown": gen_brown}
 entrainment_generators = {"binaural": gen_binaural, "monoural": gen_monoural, "isochronic": gen_isochronic, "none": gen_none}
+
+
+def parse_entrainment(args):
+	beat_f = float(args[1])
+	
+	if(args[0] == "isochronic"):
+		return entrainment_generators[args[0]], beat_f, sound_generators[args[2]]
+	else:
+		return entrainment_generators[args[0]], beat_f, None
+
+
+def parse_noise_args(args):
+	if(len(args) == 0):
+		return 1, entrainment_generators["none"], None, None
+	else:
+		return (1,) + parse_entrainment(["isochronic"] + args)
+
+
+def parse_tone_args(args):
+	sound_f = float(args[0])
+	
+	if(len(args) == 1):
+		return sound_f, entrainment_generators["none"], None, None
+	else:
+		return (sound_f,) + parse_entrainment(args[1:])
+
+
+def parse_args(args):
+	save_path = args[1]
+	duration = float(args[2])
+	sound_generator = sound_generators[args[3]]
+	
+	res = (save_path, duration, sound_generator)
+	
+	if(args[3] in noise_generators):
+		return res + parse_noise_args(args[4:])
+	else:
+		return res + parse_tone_args(args[4:])
 
 
 def main():
 	sample_rate = 44100
 	
-	noise_generators = set({"white", "pink", "brown"})
-	
 	try:
-		save_path = sys.argv[1]
-		duration = float(sys.argv[2])
-		do_fade_in_out = "true" == sys.argv[3]
-		sound_type = sys.argv[4]
-		
-		
-		if(sound_type in noise_generators):
-			sound_freq = 1
-			beat_freq = None
-			
-			if(len(sys.argv) == 5):
-				entrainment_type = "none"
-			else:
-				entrainment_type = "isochronic"
-				beat_freq = float(sys.argv[5])
-				volume_generator = sound_generators[sys.argv[6]]
-		else:
-			sound_freq = float(sys.argv[5])
-			
-			if(len(sys.argv) == 6):
-				entrainment_type = "none"
-				beat_freq = None
-			else:
-				entrainment_type = sys.argv[6]
-				beat_freq = float(sys.argv[7])
-				
-				if(entrainment_type == "isochronic"):
-					volume_generator = sound_generators[sys.argv[8]]
-			
-		
-		sound_generator = sound_generators[sound_type]
-		entrainment_generator = entrainment_generators[entrainment_type]
+		save_path, duration, sound_generator, sound_f, entrainment_generator, beat_f, volume_generator = parse_args(sys.argv)
 	except:
 		traceback.print_exc()
 		
-		print("")
-		print("Usages:")
-		print("")
-		print("Generate noise or isochronic noise")
-		print("SAVE_PATH DURATION_SECONDS FADE_IN_OUT NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]")
-		print("")
-		print("Generate tone only or tone with entrainment")
-		print("SAVE_PATH DURATION_SECONDS FADE_IN_OUT TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [ISOCHRONIC_VOLUME_GENERATOR]]")
-		print("")
-		print("when FADE_IN_OUT == true the audio will fade in at the start and out at the end")
-		print("for seamless loop set it to anything else")
-		print("")
-		print("NOISE_GENERATOR can be one of: white, pink, brown")
-		print("VOLUME_GENERATOR and TONE_GENERATOR can be one of: sine, triangle, square, smooth_square")
-		print("ENTRAINMENT_TYPE can be one of: binaural, monoural, isochronic")
-		print("when ENTRAINMENT_TYPE == isochronic then VOLUME_GENERATOR is required")
-		print("")
-		print("Example:")
-		print("")
-		print("\"python3 ./sound_and_beat_gen.py ./test.wav 300 true white\"")
+		print("see README.md for usage")
 		
 		exit()
 		
 	
-	if(entrainment_type == "isochronic"):
-		arr = entrainment_generator(sound_freq, beat_freq, sample_rate, duration, sound_generator, volume_generator)
-	else:
-		arr = entrainment_generator(sound_freq, beat_freq, sample_rate, duration, sound_generator)
-	
-	ramp_length = int(sample_rate * 0.5)
-	
-	if(do_fade_in_out):
-		fade_in_out(arr, ramp_length)
+
+	arr = entrainment_generator(sound_f, beat_f, sample_rate, duration, sound_generator, volume_generator)
 	
 	save_wav(save_path, arr, sample_rate)
 
