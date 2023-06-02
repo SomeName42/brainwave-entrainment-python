@@ -1,4 +1,4 @@
-# entrainment-python
+# brainwave-entrainment-python
 Python scripts for generating wav files of noise, tones, binaural, monoural, and isochronic beats, and for playing them back seamlessly in an endless loop.
 
 Usage of generate.py:<br/>
