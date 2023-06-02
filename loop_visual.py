@@ -1,8 +1,11 @@
+import time
+import serial
 import pyaudio
 import wave
 import sys
 import traceback
 import numpy as np
+from threading import Thread
 
 
 def load_wave(file_path):
@@ -32,7 +35,15 @@ def load_wave(file_path):
 	return file_buffer, sample_width, num_channels, sample_rate
 
 
-def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
+def do_visual(port, num_iters, sleep_duration):
+	for _ in range(num_iters):
+		port.break_condition = True
+		time.sleep(sleep_duration)
+		port.break_condition = False
+		time.sleep(sleep_duration)
+
+
+def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency):
 	file_buffer = file_buffer.astype(np.int16).tobytes()
 	
 	p = pyaudio.PyAudio()
@@ -42,8 +53,14 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
 					rate=sample_rate,
 					output=True)
 	
+	duration = len(file_buffer) / sample_rate / sample_width
+	sleep_duration = 1 / frequency / 2
+	port = serial.Serial(serial_port)
+	
 	while True:
+		Thread(target=do_visual, args=[port, int(duration * frequency), sleep_duration]).start()
 		stream.write(file_buffer)
+		
 			
 	stream.close()
 	p.terminate()	
@@ -52,9 +69,11 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
 def main():
 	try:
 		file_path = sys.argv[1]
+		serial_port = sys.argv[2]
+		frequency = float(sys.argv[3])
 		
-		if(len(sys.argv) > 2):
-			volume = float(sys.argv[2])
+		if(len(sys.argv) > 4):
+			volume = float(sys.argv[4])
 		else:
 			volume = 1
 			
@@ -71,7 +90,7 @@ def main():
 	
 	file_buffer = file_buffer * volume
 	
-	loop_wave(file_buffer, sample_width, num_channels, sample_rate)
+	loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency)
 		
 
 if(__name__ == "__main__"):
