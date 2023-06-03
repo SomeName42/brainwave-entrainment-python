@@ -59,14 +59,12 @@ def do_visual(port, num_iters, sleep_duration, offset):
 		port.break_condition = True
 		time.sleep(sleep_duration)
 		port.break_condition = False
-		time.sleep(sleep_duration - offset)
 	else:
 		port.break_condition = True
 		time.sleep(sleep_duration)
 		port.break_condition = False
 		time.sleep(sleep_duration)
 		port.break_condition = True
-		time.sleep(-offset)
 
 def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift):
 	file_buffer = file_buffer.astype(np.int16).tobytes()
