@@ -17,7 +17,8 @@ VOLUME is a floating point value, 1 is normal<br/><br/>
 Additionaly provides visual entrainment through a serial port.<br/>
 Turns on and off the TXD pin at the desired frequency.<br/>
 This can be used for example with LED -s<br>
-FILE_PATH SERIAL_PORT FREQUENCY [VOLUME]<br/>
+FILE_PATH SERIAL_PORT FREQUENCY PHASE_SHIFT [VOLUME]<br/>
 FILE_PATH and VOLUME is the same<br/>
 SERIAL_PORT is the serial port, for example on linux: /dev/ttyUSB0<br/>
 FREQUENCY is the entrainment frequency of the audio file<br/>
+PHASE_SHIFT is the phase shift for the visual entrainment
