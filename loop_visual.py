@@ -1,4 +1,4 @@
-import time
+from time import sleep, time
 import serial
 import pyaudio
 import wave
@@ -35,38 +35,67 @@ def load_wave(file_path):
 	return file_buffer, sample_width, num_channels, sample_rate
 
 
+start_time = None
+
 def do_visual(port, num_iters, sleep_duration, offset):
+	target_time = start_time
+	
 	if(offset >= 0):
-		time.sleep(offset)
-		port.break_condition = True
-		time.sleep(sleep_duration)
-		port.break_condition = False
-		time.sleep(sleep_duration)
-	else:
-		port.break_condition = True
-		time.sleep(sleep_duration + offset)
-		port.break_condition = False
-		time.sleep(sleep_duration)
+		target_time += offset
+		sleep(target_time - time())
 		
+		port.break_condition = True
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
+		port.break_condition = False
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+	else:
+		target_time += sleep_duration + offset
+		sleep(target_time - time())
+		
+		port.break_condition = False
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
 	
 	for _ in range(num_iters - 2):
 		port.break_condition = True
-		time.sleep(sleep_duration)
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
 		port.break_condition = False
-		time.sleep(sleep_duration)
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
 	
 	if(offset >= 0):
 		port.break_condition = True
-		time.sleep(sleep_duration)
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
 		port.break_condition = False
 	else:
 		port.break_condition = True
-		time.sleep(sleep_duration)
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
 		port.break_condition = False
-		time.sleep(sleep_duration)
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
 		port.break_condition = True
 
 def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift):
+	global start_time
+	
 	file_buffer = file_buffer.astype(np.int16).tobytes()
 	
 	p = pyaudio.PyAudio()
@@ -83,6 +112,7 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 	offset = phase_shift * sleep_duration * 2
 	
 	while True:
+		start_time = time()
 		Thread(target=do_visual, args=[port, num_iters, sleep_duration, offset]).start()
 		stream.write(file_buffer)
 		
