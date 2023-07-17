@@ -34,10 +34,7 @@ def load_wave(file_path):
 	
 	return file_buffer, sample_width, num_channels, sample_rate
 
-
-start_time = None
-
-def do_visual(port, num_iters, sleep_duration, offset):
+def do_visual(port, sleep_duration, offset, start_time):
 	target_time = start_time
 	
 	if(offset >= 0):
@@ -48,54 +45,24 @@ def do_visual(port, num_iters, sleep_duration, offset):
 		
 		target_time += sleep_duration
 		sleep(target_time - time())
-		
-		port.break_condition = False
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
 	else:
 		target_time += sleep_duration + offset
 		sleep(target_time - time())
-		
-		port.break_condition = False
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
 	
-	for _ in range(num_iters - 2):
-		port.break_condition = True
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
-		
-		port.break_condition = False
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
-	
-	if(offset >= 0):
-		port.break_condition = True
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
-		
-		port.break_condition = False
-	else:
-		port.break_condition = True
-		
-		target_time += sleep_duration
-		sleep(target_time - time())
-		
+	while(True):
 		port.break_condition = False
 		
 		target_time += sleep_duration
 		sleep(target_time - time())
 		
 		port.break_condition = True
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
+		
 
 def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift):
-	global start_time
-	
 	file_buffer = file_buffer.astype(np.int16).tobytes()
 	
 	p = pyaudio.PyAudio()
@@ -104,19 +71,33 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 					channels=num_channels,
 					rate=sample_rate,
 					output=True)
-	
-	duration = len(file_buffer) / sample_rate / sample_width
+					
+	original_len = len(file_buffer) / sample_width
+	duration = original_len / sample_rate
 	sleep_duration = 1 / frequency / 2
 	port = serial.Serial(serial_port)
-	num_iters = int(duration * frequency)
 	offset = phase_shift * sleep_duration * 2
 	
+	start_time = time()
+	Thread(target=do_visual, args=[port, sleep_duration, offset, start_time], daemon = True).start()
+	
+	target_time = start_time
+	
 	while True:
-		start_time = time()
-		Thread(target=do_visual, args=[port, num_iters, sleep_duration, offset]).start()
-		stream.write(file_buffer)
+		time_diff = target_time - time()
 		
-			
+		if(abs(time_diff) <= 0.005):
+			stream.write(file_buffer)
+		elif(time_diff > 0):
+			extend_count = int(time_diff * sample_rate)
+			stream.write(file_buffer[:sample_width] * extend_count + file_buffer)
+		else:
+			reduce_count = int(-time_diff * sample_rate)
+			stream.write(file_buffer[reduce_count * sample_width:])
+		
+		target_time += duration
+		
+		
 	stream.close()
 	p.terminate()	
 
