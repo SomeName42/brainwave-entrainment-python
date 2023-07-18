@@ -1,8 +1,11 @@
+from time import sleep, time
+import serial
 import pyaudio
 import wave
 import sys
 import traceback
 import numpy as np
+from threading import Thread
 
 
 def load_wave(file_path):
@@ -31,8 +34,35 @@ def load_wave(file_path):
 	
 	return file_buffer, sample_width, num_channels, sample_rate
 
+def do_visual(port, sleep_duration, offset, start_time):
+	target_time = start_time
+	
+	if(offset >= 0):
+		target_time += offset
+		sleep(target_time - time())
+		
+		port.break_condition = True
+		
+		target_time += sleep_duration
+		sleep(max(target_time - time(), 0))
+	else:
+		target_time += sleep_duration + offset
+		sleep(max(target_time - time(), 0))
+	
+	while(True):
+		port.break_condition = False
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
+		port.break_condition = True
+		
+		target_time += sleep_duration
+		sleep(target_time - time())
+		
+		
 
-def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
+def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift):
 	file_buffer = file_buffer.astype(np.int16).tobytes()
 	
 	p = pyaudio.PyAudio()
@@ -41,10 +71,39 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
 					channels=num_channels,
 					rate=sample_rate,
 					output=True)
+					
+	original_len = len(file_buffer) / sample_width
+	duration = original_len / sample_rate
+	
+	start_time = time()
+	
+	if(serial_port is not None):
+		port = serial.Serial(serial_port)
+		sleep_duration = 1 / frequency / 2
+		offset = phase_shift * sleep_duration * 2
+		Thread(target=do_visual, args=[port, sleep_duration, offset, start_time], daemon = True).start()
+	
+	target_time = start_time
 	
 	while True:
-		stream.write(file_buffer)
+		time_diff = target_time - time()
+		
+		if(abs(time_diff) <= 0.005):
+			stream.write(file_buffer)
+		elif(time_diff > 0):
+			extend_count = int(time_diff * sample_rate)
 			
+			if(extend_count > 0):
+				stream.write(file_buffer[- sample_width * extend_count:])
+			
+			stream.write(file_buffer)
+		else:
+			reduce_count = int(-time_diff * sample_rate)
+			stream.write(file_buffer[reduce_count * sample_width:])
+		
+		target_time += duration
+		
+		
 	stream.close()
 	p.terminate()	
 
@@ -52,12 +111,21 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate):
 def main():
 	try:
 		file_path = sys.argv[1]
+		volume = float(sys.argv[2])
 		
-		if(len(sys.argv) > 2):
-			volume = float(sys.argv[2])
+		if(len(sys.argv) == 3):
+			serial_port = None
+			frequency = None
+			phase_shift = None
+		elif(len(sys.argv) == 6):
+			serial_port = sys.argv[3]
+			frequency = float(sys.argv[4])
+			phase_shift = float(sys.argv[5])
 		else:
-			volume = 1
-			
+			print("see README.md for usage")
+			exit()
+		
+		
 		file_buffer, sample_width, num_channels, sample_rate = load_wave(file_path)
 	except:
 		traceback.print_exc()
@@ -71,7 +139,7 @@ def main():
 	
 	file_buffer = file_buffer * volume
 	
-	loop_wave(file_buffer, sample_width, num_channels, sample_rate)
+	loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift)
 		
 
 if(__name__ == "__main__"):
