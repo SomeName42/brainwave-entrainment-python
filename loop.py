@@ -53,27 +53,37 @@ def do_visual(port, sleep_duration, offset, start_time):
 		sleep_until(target_time)
 
 
-def adjust_start_i(file_buffer_np, last_i, start_i):
+def adjust_start_i_dir(file_buffer_np, last_i, start_i, ch):
 	val = file_buffer_np[last_i]
-	grad_sign = np.sign(file_buffer_np[last_i + 1] - val)
+	grad_sign = np.sign(file_buffer_np[last_i + ch] - val)
 	
 	buffer_start_i = file_buffer_np[start_i]
-	buffer_start_i_1 = file_buffer_np[start_i + 1]
+	buffer_start_i_1 = file_buffer_np[start_i + ch]
 	
 	next_grad = buffer_start_i_1 - buffer_start_i
 	last_abs_diff = abs(val - buffer_start_i)
 	next_abs_diff = abs(val - buffer_start_i_1)
 	
 	while np.sign(next_grad) != grad_sign or next_abs_diff < last_abs_diff:
-		start_i += 1
+		start_i += ch
 		
-		buffer_start_i_1 = file_buffer_np[start_i + 1]
+		buffer_start_i_1 = file_buffer_np[start_i + ch]
 	
 		next_grad = buffer_start_i_1 - file_buffer_np[start_i]
 		last_abs_diff = next_abs_diff
 		next_abs_diff = abs(val - buffer_start_i_1)
 	
-	return start_i
+	return start_i, last_abs_diff
+
+
+def adjust_start_i(file_buffer_np, last_i, start_i):
+	start_i_pos, diff_pos = adjust_start_i_dir(file_buffer_np, last_i, start_i, 1)
+	start_i_neg, diff_neg = adjust_start_i_dir(file_buffer_np, last_i, start_i, -1)
+	
+	if(diff_pos < diff_neg):
+		return start_i_pos
+	else:
+		return start_i_neg
 
 
 def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port, frequency, phase_shift):
