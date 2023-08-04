@@ -1,11 +1,9 @@
 from time import sleep, time
-import serial
 import pyaudio
 import wave
 import sys
 import traceback
 import numpy as np
-from threading import Thread
 
 
 def load_wave(file_path):
@@ -105,6 +103,9 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 	start_time = int(time() / duration) * duration
 	
 	if(serial_port is not None):
+		import serial
+		from threading import Thread
+		
 		port = serial.Serial(serial_port)
 		sleep_duration = 1 / frequency / 2
 		offset = phase_shift * sleep_duration * 2
