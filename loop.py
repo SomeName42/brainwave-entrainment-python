@@ -56,11 +56,15 @@ def adjust_start_i_dir(file_buffer_np, last_i, start_i, ch):
 	grad_sign = np.sign(file_buffer_np[last_i + ch] - val)
 	
 	buffer_start_i = file_buffer_np[start_i]
+	last_abs_diff = abs(val - buffer_start_i)
+	
+	if(start_i + ch < 0 or start_i + ch >= file_buffer_np.shape[0]):
+		return start_i, last_abs_diff
+	
 	buffer_start_i_1 = file_buffer_np[start_i + ch]
+	next_abs_diff = abs(val - buffer_start_i_1)
 	
 	next_grad = buffer_start_i_1 - buffer_start_i
-	last_abs_diff = abs(val - buffer_start_i)
-	next_abs_diff = abs(val - buffer_start_i_1)
 	
 	while np.sign(next_grad) != grad_sign or next_abs_diff < last_abs_diff:
 		start_i += ch
@@ -116,6 +120,10 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 	while True:
 		time_diff = target_time - time()
 		
+		count = int(time_diff / duration)
+		
+		time_diff -= count * duration
+		
 		if(abs(time_diff) <= max_abs_diff):
 			stream.write(file_buffer)
 		elif(time_diff > 0):
@@ -129,7 +137,7 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 			reduce_count = adjust_start_i(file_buffer_np, -2, int(-time_diff * sample_rate))
 			stream.write(file_buffer[reduce_count * sample_width:])
 		
-		target_time += duration
+		target_time -= duration * (count - 1)
 		
 		
 	stream.close()
