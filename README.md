@@ -4,7 +4,7 @@ Python scripts for brainwave entrainment.
 Generate noise or isochronic noise.<br/>
 arguments: SAVE_PATH DURATION_SECONDS NOISE_GENERATOR [BEAT_FREQ VOLUME_GENERATOR]<br/><br/>
 Generate tone only or tone with entrainment.<br/>
-arguments: SAVE_PATH DURATION_SECONDS TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [ISOCHRONIC_VOLUME_GENERATOR]]<br/><br/>
+arguments: SAVE_PATH DURATION_SECONDS TONE_GENERATOR SOUND_FREQ [ENTRAINMENT_TYPE BEAT_FREQ [VOLUME_GENERATOR]]<br/><br/>
 NOISE_GENERATOR has to be one of: white, pink, brown.<br/>
 VOLUME_GENERATOR and TONE_GENERATOR has to be one of: sine, triangle, square, smooth_square.<br/>
 ENTRAINMENT_TYPE has to be one of: binaural, monoural, isochronic.<br/>

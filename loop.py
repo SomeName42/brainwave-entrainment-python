@@ -53,7 +53,7 @@ def do_visual(port, sleep_duration, offset, start_time):
 		sleep_until(target_time)
 
 
-def adjust_start_i_dir(file_buffer_np, match_i, start_i, ch):
+def adjust_start_i_dir(file_buffer_np, match_i, start_i, ch, max_ch):
 	match_1 = file_buffer_np[match_i]
 	
 	if(match_i == file_buffer_np.shape[0] - 1):
@@ -61,33 +61,26 @@ def adjust_start_i_dir(file_buffer_np, match_i, start_i, ch):
 	else:
 		match_2 = file_buffer_np[match_i + 1]
 	
-	last_abs_diff = abs(match_1 - file_buffer_np[start_i - 1]) + abs(match_2 - file_buffer_np[start_i])
+	best_i = start_i
+	best_abs_diff = abs(match_1 - file_buffer_np[start_i - 1]) + abs(match_2 - file_buffer_np[start_i])
 	
-	if(start_i + ch >= file_buffer_np.shape[0]):
-		return start_i, last_abs_diff
+	end_i = min(start_i + ch * max_ch, file_buffer_np.shape[0])
 	
-	next_abs_diff = abs(match_1 - file_buffer_np[start_i - 1 + ch]) + abs(match_2 - file_buffer_np[start_i + ch])
-
-
-	while next_abs_diff > last_abs_diff:
+	while start_i != end_i:
 		start_i += ch
+		
+		abs_diff = abs(match_1 - file_buffer_np[start_i - 1]) + abs(match_2 - file_buffer_np[start_i])
+		
+		if(abs_diff < best_abs_diff):
+			best_abs_diff = abs_diff
+			best_i = start_i
 	
-		last_abs_diff = next_abs_diff
-		next_abs_diff = abs(match_1 - file_buffer_np[start_i - 1 + ch]) + abs(match_2 - file_buffer_np[start_i + ch])
-	
-	
-	while next_abs_diff < last_abs_diff:
-		start_i += ch
-	
-		last_abs_diff = next_abs_diff
-		next_abs_diff = abs(match_1 - file_buffer_np[start_i - 1 + ch]) + abs(match_2 - file_buffer_np[start_i + ch])
-	
-	return start_i, last_abs_diff
+	return best_i, best_abs_diff
 
 
-def adjust_start_i(file_buffer_np, match_i, start_i):
-	start_i_pos, diff_pos = adjust_start_i_dir(file_buffer_np, match_i, start_i, 1)
-	start_i_neg, diff_neg = adjust_start_i_dir(file_buffer_np, match_i, start_i, -1)
+def adjust_start_i(file_buffer_np, match_i, start_i, max_ch):
+	start_i_pos, diff_pos = adjust_start_i_dir(file_buffer_np, match_i, start_i, 1, max_ch)
+	start_i_neg, diff_neg = adjust_start_i_dir(file_buffer_np, match_i, start_i, -1, max_ch)
 	
 	if(diff_pos < diff_neg):
 		return start_i_pos
@@ -124,6 +117,8 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 	
 	target_time = start_time
 	
+	max_ch = int(max_abs_diff * sample_rate * 0.25)
+	
 	while True:
 		time_diff = target_time - time()
 		
@@ -134,14 +129,14 @@ def loop_wave(file_buffer, sample_width, num_channels, sample_rate, serial_port,
 		if(abs(time_diff) <= max_abs_diff):
 			stream.write(file_buffer)
 		elif(time_diff > 0):
-			extend_count = adjust_start_i(file_buffer_np, 0, int(time_diff * sample_rate))
+			extend_count = adjust_start_i(file_buffer_np, 0, int(time_diff * sample_rate), max_ch)
 			
 			if(extend_count > 0):
 				stream.write(file_buffer[:extend_count * sample_width])
 				
 			stream.write(file_buffer)
 		else:
-			reduce_count = adjust_start_i(file_buffer_np, file_buffer_np.shape[0] - 1, int(-time_diff * sample_rate))
+			reduce_count = adjust_start_i(file_buffer_np, file_buffer_np.shape[0] - 1, int(-time_diff * sample_rate), max_ch)
 			stream.write(file_buffer[reduce_count * sample_width:])
 		
 		target_time -= duration * (count - 1)
